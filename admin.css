@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+input:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}

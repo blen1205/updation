@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Evangelization Network</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      colors: { denBlue: "#1e3a8a", denDark: "#0a1633", denGreen: "#4f8f14", denLime: "#8cc63f" },
+      fontFamily: { serif: ['"Playfair Display"', "Georgia", "serif"], sans: ["Inter", "system-ui", "sans-serif"] }
+    } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,500;1,600&display=swap" rel="stylesheet" />
+  <style>
+    html { scroll-behavior: smooth; }
+    .slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .8s ease, visibility .8s; }
+    .slide.active { opacity: 1; visibility: visible; }
+    .slide.active .rise { animation: rise .9s ease both; }
+    .slide.active .rise:nth-child(2) { animation-delay: .1s } .slide.active .rise:nth-child(3) { animation-delay: .2s } .slide.active .rise:nth-child(4) { animation-delay: .3s }
+    @keyframes rise { from { opacity: 0; transform: translateY(22px) } to { opacity: 1; transform: none } }
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .of { width: 100%; padding: .625rem .75rem; border: 1px solid #d1d5db; border-radius: .5rem; font-size: .875rem; }
+    .of:focus { outline: 2px solid #1e3a8a; outline-offset: -1px; }
+    em.accent { color: #8cc63f; font-style: italic; }
+    @media (prefers-reduced-motion: reduce) { .reveal, .slide, .rise { transition: none !important; animation: none !important; opacity: 1; transform: none; } }
+  </style>
+</head>
+<body class="bg-[#f7f8fc] text-gray-800 font-sans antialiased">
+
+  <!-- HEADER -->
+  <header id="header" class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-200 transition-shadow">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center h-12"><img src="logo2.png" alt="Digital Evangelization Network" class="h-10 w-auto object-contain" /></a>
+      <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600">
+        <a href="#" class="text-denBlue font-semibold">Home</a>
+        <a href="#about" class="hover:text-denBlue transition">About DEN</a>
+        <a href="#books" class="hover:text-denBlue transition">Books</a>
+        <a href="#inspiration" class="hover:text-denBlue transition">Inspiration</a>
+        <a href="#contact" class="hover:text-denBlue transition">Contact</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button type="button" data-open-order class="bg-denGreen hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-full text-sm shadow-sm transition">🛒 Order Books</button>
+        <button id="menu-btn" class="md:hidden p-2 text-gray-600" aria-label="Menu">☰</button>
+      </div>
+    </div>
+    <nav id="mobile-nav" class="hidden md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-2 text-sm font-medium text-gray-700">
+      <a href="#" class="block">Home</a><a href="#about" class="block">About DEN</a><a href="#books" class="block">Books</a>
+      <a href="#inspiration" class="block">Inspiration</a><a href="#contact" class="block">Contact</a>
+    </nav>
+  </header>
+
+  <!-- HERO SLIDER -->
+  <section id="hero" class="relative bg-black text-white overflow-hidden">
+    <!-- Background: library bookshelves (same as dati) -->
+    <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1600&q=80');"></div>
+    <div class="absolute inset-0 bg-black/60"></div>
+    <div id="slides" class="relative max-w-7xl mx-auto min-h-[600px] md:min-h-[560px]"></div>
+    <button id="prev-btn" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 transition" aria-label="Previous">❮</button>
+    <button id="next-btn" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 transition" aria-label="Next">❯</button>
+    <div id="dots" class="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-2"></div>
+  </section>
+
+  <!-- QUICK CARDS (overlap the hero) -->
+  <section class="max-w-7xl mx-auto px-4 -mt-14 relative z-10 grid grid-cols-1 md:grid-cols-3 gap-5">
+    <a href="#books" class="reveal bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:-translate-y-1 transition">
+      <div class="text-3xl mb-2">📚</div><h3 class="font-serif text-lg font-bold text-denBlue">Order Books</h3>
+      <p class="text-sm text-gray-500 mt-1">Browse the complete Virtue Series from Kinder to Grade 12.</p><span class="text-sm font-semibold text-denGreen mt-3 inline-block">Shop now →</span>
+    </a>
+    <a href="#about" class="reveal bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:-translate-y-1 transition">
+      <div class="text-3xl mb-2">✨</div><h3 class="font-serif text-lg font-bold text-denBlue">About DEN</h3>
+      <p class="text-sm text-gray-500 mt-1">Faith-based educational materials that form young hearts.</p><span class="text-sm font-semibold text-denGreen mt-3 inline-block">Learn more →</span>
+    </a>
+    <a href="#contact" class="reveal bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:-translate-y-1 transition">
+      <div class="text-3xl mb-2">💬</div><h3 class="font-serif text-lg font-bold text-denBlue">Contact Us</h3>
+      <p class="text-sm text-gray-500 mt-1">Questions about bulk or school orders? We're happy to help.</p><span class="text-sm font-semibold text-denGreen mt-3 inline-block">Get in touch →</span>
+    </a>
+  </section>
+
+  <!-- BOOKS -->
+  <section id="books" class="max-w-7xl mx-auto px-4 pt-20 pb-6 scroll-mt-20">
+    <div class="reveal text-center mb-8">
+      <p class="text-xs font-bold tracking-[.2em] uppercase text-denGreen">Virtue Series</p>
+      <h2 class="font-serif text-3xl sm:text-4xl font-bold text-gray-900 mt-1">Books for <em class="text-denBlue">every grade</em></h2>
+    </div>
+    <div id="tabs" class="reveal flex justify-center flex-wrap gap-2 mb-8 text-sm font-semibold"></div>
+    <div id="book-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"></div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="max-w-7xl mx-auto px-4 py-20 grid md:grid-cols-2 gap-10 items-center scroll-mt-20">
+    <div class="reveal">
+      <p class="text-xs font-bold tracking-[.2em] uppercase text-denGreen">About us</p>
+      <h2 class="font-serif text-3xl sm:text-4xl font-bold text-gray-900 mt-1">Nurturing faith, <em class="text-denBlue">forming the future</em></h2>
+      <p class="text-gray-600 leading-relaxed mt-4">Digital Evangelization Network (DevNet) is a comprehensive <strong>GMRC (Growth in Moral and Religious Character)</strong> publication and <strong>learning management system (LMS)</strong> spanning <strong>Kindergarten through Grade 12</strong>. Designed to seamlessly integrate faith into everyday education, DevNet offers user-friendly resources that empower educators while strengthening collaboration and communication among teachers, parents, and students.</p>
+    </div>
+    <div class="reveal grid grid-cols-2 gap-4">
+      <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm"><div class="text-2xl">✨</div><p class="font-semibold text-denBlue mt-2 text-sm">Form in Faith</p></div>
+      <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm"><div class="text-2xl">💙</div><p class="font-semibold text-denBlue mt-2 text-sm">Evangelize with Love</p></div>
+      <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm"><div class="text-2xl">👨‍👩‍👧</div><p class="font-semibold text-denBlue mt-2 text-sm">Disciple with Purpose</p></div>
+      <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm"><div class="text-2xl">🌐</div><p class="font-semibold text-denBlue mt-2 text-sm">Mission to the World</p></div>
+    </div>
+  </section>
+
+  <!-- WORDS OF WISDOM (auto-rotating verse) -->
+  <section id="inspiration" class="bg-denDark text-white py-20 px-4 scroll-mt-16">
+    <div class="max-w-3xl mx-auto text-center">
+      <p class="text-xs font-bold tracking-[.2em] uppercase text-denLime">Daily Inspiration</p>
+      <div id="verse-box" class="transition-opacity duration-500 min-h-[190px] flex flex-col justify-center">
+        <blockquote id="verse-text" class="font-serif text-2xl sm:text-3xl italic leading-snug mt-4"></blockquote>
+        <p id="verse-ref" class="text-denLime font-semibold mt-4 text-sm"></p>
+      </div>
+      <div id="verse-dots" class="flex justify-center gap-2 mt-6"></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="max-w-4xl mx-auto px-4 py-20 text-center scroll-mt-16">
+    <h2 class="reveal font-serif text-3xl font-bold text-gray-900">Let's <em class="text-denBlue">talk</em></h2>
+    <div class="reveal grid sm:grid-cols-3 gap-4 mt-8 text-sm">
+      <a href="tel:09335242194" class="bg-white border border-gray-100 shadow-sm rounded-2xl p-5 hover:-translate-y-1 transition">📞<br><span class="font-semibold text-denBlue">09335242194</span></a>
+      <a href="mailto:devnetgp@gmail.com" class="bg-white border border-gray-100 shadow-sm rounded-2xl p-5 hover:-translate-y-1 transition">✉️<br><span class="font-semibold text-denBlue">devnetgp@gmail.com</span></a>
+      <div class="bg-white border border-gray-100 shadow-sm rounded-2xl p-5">🌐<br><span class="font-semibold text-denBlue">Digital Evangelization Network</span></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="bg-denBlue text-white py-10 px-4">
+    <div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-8 text-sm">
+      <div class="space-y-3">
+        <img src="logo2.png" alt="DEN Logo" class="h-12 w-auto object-contain bg-white p-1 rounded-lg" />
+        <p class="text-blue-100 italic">"Sharing Christ. Transforming Lives. Online. On mission. For Christ."</p>
+      </div>
+      <div>
+        <h4 class="font-bold mb-2">Quick Links</h4>
+        <ul class="space-y-1 text-blue-100"><li><a href="#about" class="hover:text-white">About DEN</a></li><li><a href="#books" class="hover:text-white">Books</a></li><li><a href="#inspiration" class="hover:text-white">Inspiration</a></li><li><a href="#contact" class="hover:text-white">Contact</a></li></ul>
+      </div>
+      <div>
+        <h4 class="font-bold mb-2">Connect with Us</h4>
+        <p class="text-blue-100">📞 09335242194<br>✉️ devnetgp@gmail.com</p>
+      </div>
+    </div>
+    <p class="text-center text-xs text-blue-200 mt-8 pt-6 border-t border-white/10">&copy; 2026 Digital Evangelization Network. All rights reserved.</p>
+  </footer>
+
+  <!-- ORDER MODAL -->
+  <div id="order-modal" class="fixed inset-0 z-[60] hidden items-end sm:items-center justify-center sm:p-4">
+    <div id="order-backdrop" class="absolute inset-0 bg-black/60"></div>
+    <div class="relative bg-white w-full sm:max-w-2xl max-h-[92vh] flex flex-col rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <h3 class="font-serif text-xl font-bold text-denBlue">Order Books</h3>
+        <button type="button" id="order-close" class="text-gray-400 hover:text-gray-700 text-xl leading-none" aria-label="Close">✕</button>
+      </div>
+      <form id="order-form" class="flex flex-col min-h-0 flex-1">
+        <div class="overflow-y-auto px-5 py-4 space-y-4">
+          <p class="text-xs text-gray-500">Piliin ang libro at ilagay ang quantity.</p>
+          <div id="order-list" class="space-y-2"></div>
+          <div class="grid sm:grid-cols-2 gap-3 pt-2">
+            <input id="o-name" required placeholder="School name" class="of" />
+            <input id="o-tin" required placeholder="TIN number" class="of" />
+            <input id="o-address" required placeholder="School address" class="of sm:col-span-2" />
+            <input id="o-person" required placeholder="Contact person" class="of" />
+            <input id="o-phone" type="tel" required placeholder="Contact number" class="of" />
+            <input id="o-email" type="email" required placeholder="Email" class="of sm:col-span-2" />
+            <p class="sm:col-span-2 text-xs font-bold text-denBlue pt-1">Accounting / Finance</p>
+            <input id="o-acc-name" required placeholder="Accounting/Finance (Name)" class="of" />
+            <input id="o-acc-phone" type="tel" required placeholder="Accounting/Finance (Number)" class="of" />
+            <input id="o-acc-email" type="email" required placeholder="Accounting/Finance (Email)" class="of sm:col-span-2" />
+            <div class="sm:col-span-2 pt-1">
+              <p class="text-xs font-bold text-denBlue mb-1">E-Signature</p>
+              <p class="text-[11px] text-gray-500 mb-2">Upload a photo or scan of the authorized signatory's signature (PNG or JPG).</p>
+              <input id="o-sig" type="file" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-blue-50 file:text-denBlue cursor-pointer" />
+              <img id="o-sig-prev" alt="Signature preview" class="hidden h-20 mt-2 border border-gray-200 rounded-lg bg-white p-1" />
+            </div>
+          </div>
+        </div>
+        <div class="px-5 py-4 border-t border-gray-100 flex items-center justify-between gap-3 bg-gray-50">
+          <div><p class="text-[11px] text-gray-500 uppercase font-semibold">Total</p><p id="order-total" class="text-xl font-extrabold text-denBlue">₱0.00</p><p id="order-note" class="text-[11px] text-denGreen font-semibold"></p></div>
+          <button id="order-submit" type="submit" class="bg-denGreen hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-6 py-2.5 rounded-full transition">Place Order</button>
+        </div>
+      </form>
+      <div id="order-done" class="hidden p-10 text-center space-y-3">
+        <div class="text-5xl">✅</div>
+        <h4 class="font-serif text-xl font-bold text-denBlue">Order sent!</h4>
+        <p id="order-done-msg" class="text-sm text-gray-600"></p>
+        <div class="flex flex-wrap justify-center gap-2">
+          <button type="button" id="order-pdf-btn" class="bg-denGreen hover:bg-green-700 text-white font-semibold px-6 py-2.5 rounded-full">⬇ Download PDF</button>
+          <button type="button" id="order-done-close" class="bg-denBlue text-white font-semibold px-6 py-2.5 rounded-full">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="order-pdf.js"></script>
+  <script>
+    // ---------- DATA ----------
+    const BOOKS = [
+      { lvl: "Kinder", grp: "Elementary", title: "Loving God & Others", img: "bookkinder.png", price: 650, c: "bg-yellow-500" },
+      { lvl: "Grade 1", grp: "Elementary", title: "Good Manners, Matters", img: "bookgrade1.png", price: 650, c: "bg-green-500" },
+      { lvl: "Grade 2", grp: "Elementary", title: "Faithful Footsteps", img: "bookgrade2.png", price: 650, c: "bg-purple-600" },
+      { lvl: "Grade 3", grp: "Elementary", title: "Leading with Integrity", img: "bookgrade3.png", price: 650, c: "bg-lime-600" },
+      { lvl: "Grade 4", grp: "Elementary", title: "Good with Compassion", img: "bookgrade4.png", price: 650, c: "bg-orange-500" },
+      { lvl: "Grade 5", grp: "Elementary", title: "Happy Manners", img: "bookgrade5.png", price: 650, c: "bg-pink-500" },
+      { lvl: "Grade 6", grp: "Elementary", title: "Wisdom in Action", img: "bookgrade6.png", price: 650, c: "bg-teal-600" },
+      { lvl: "Grade 7", grp: "Junior High", title: "Walking in Faith", img: "bookgrade7.png", price: 650, c: "bg-blue-600" },
+      { lvl: "Grade 8", grp: "Junior High", title: "Courage & Conviction", img: "bookgrade8.png", price: 650, c: "bg-indigo-600" },
+      { lvl: "Grade 9", grp: "Junior High", title: "Servant Leadership", img: "bookgrade9.png", price: 650, c: "bg-purple-600" },
+      { lvl: "Grade 10", grp: "Junior High", title: "Global Christian Witness", img: "bookgrade10.png", price: 650, c: "bg-red-600" },
+      { lvl: "Grade 11", grp: "Senior High", title: "Purpose & Calling", img: "bookgrade11.png", price: 650, c: "bg-amber-600" },
+      { lvl: "Grade 12", grp: "Senior High", title: "Faithful Ambassadors", img: "bookgrade12.png", price: 650, c: "bg-emerald-600" }
+    ];
+    const SLIDES = [
+      { tag: "Welcome to DEN", a: "Forming hearts", b: "in faith.", d: "Faith-based books that nurture character from Kindergarten to Grade 12.", imgs: ["bookkinder.png", "bookgrade1.png"], cta: "Order Books", href: "#books" },
+      { tag: "Elementary · Kinder – Grade 6", a: "Virtues for", b: "young hearts.", d: "Early character building through stories, values, and everyday faith.", imgs: ["bookgrade2.png", "bookgrade3.png", "bookgrade4.png"], cta: "Shop Elementary", href: "#books", tab: "Elementary" },
+      { tag: "Junior High · Grades 7 – 10", a: "Courage to", b: "stand firm.", d: "Identity, conviction, and servant leadership for growing teens.", imgs: ["bookgrade7.png", "bookgrade8.png"], cta: "Shop Junior High", href: "#books", tab: "Junior High" },
+      { tag: "Senior High · Grades 11 – 12", a: "Purpose and", b: "calling.", d: "Discovering God's direction for career, life, and leadership.", imgs: ["bookgrade11.png", "bookgrade12.png"], cta: "Shop Senior High", href: "#books", tab: "Senior High" }
+    ];
+    const VERSES = [
+      ["I can do all things through Christ who strengthens me.", "Philippians 4:13"],
+      ["For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.", "John 3:16"],
+      ["Trust in the Lord with all your heart and lean not on your own understanding.", "Proverbs 3:5"]
+    ];
+    const $ = (id) => document.getElementById(id);
+    const tilt = ["-rotate-6", "rotate-3", "-rotate-2"];
+
+    // ---------- HERO SLIDER ----------
+    $("slides").innerHTML = SLIDES.map((s, i) => `
+      <div class="slide ${i === 0 ? "active" : ""}">
+        <div class="h-full px-6 md:px-16 pb-28 pt-10 grid md:grid-cols-2 gap-6 items-center">
+          <div class="space-y-4 text-center md:text-left order-2 md:order-1">
+            <p class="rise text-xs font-bold tracking-[.2em] uppercase text-denLime">${s.tag}</p>
+            <h1 class="rise font-serif text-4xl sm:text-6xl font-bold leading-tight">${s.a} <em class="accent">${s.b}</em></h1>
+            <p class="rise text-blue-100 text-lg max-w-lg mx-auto md:mx-0">${s.d}</p>
+            <div class="rise pt-2"><a href="${s.href}" data-tab="${s.tab || "All"}" class="cta inline-block bg-denGreen hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-full shadow-lg transition">${s.cta} ↗</a></div>
+          </div>
+          <div class="order-1 md:order-2 flex justify-center items-center">
+            ${s.imgs.map((m, k) => `<img src="${m}" alt="" class="${k ? "-ml-10" : ""} ${tilt[k]} w-32 sm:w-44 aspect-[3/4] object-cover rounded-lg shadow-2xl border-2 border-white/20 bg-white" />`).join("")}
+          </div>
+        </div>
+      </div>`).join("");
+    $("dots").innerHTML = SLIDES.map((_, i) => `<button class="dot w-2.5 h-2.5 rounded-full bg-white/30 transition-all" data-i="${i}" aria-label="Slide ${i + 1}"></button>`).join("");
+
+    let cur = 0, timer;
+    function go(n) {
+      cur = (n + SLIDES.length) % SLIDES.length;
+      document.querySelectorAll(".slide").forEach((el, i) => el.classList.toggle("active", i === cur));
+      document.querySelectorAll(".dot").forEach((d, i) => { d.classList.toggle("bg-white", i === cur); d.classList.toggle("w-7", i === cur); d.classList.toggle("bg-white/30", i !== cur); });
+    }
+    const play = () => { clearInterval(timer); timer = setInterval(() => go(cur + 1), 5000); };
+    $("prev-btn").onclick = () => { go(cur - 1); play(); };
+    $("next-btn").onclick = () => { go(cur + 1); play(); };
+    $("dots").onclick = (e) => { if (e.target.dataset.i) { go(+e.target.dataset.i); play(); } };
+    $("hero").onmouseenter = () => clearInterval(timer);
+    $("hero").onmouseleave = play;
+    go(0); play();
+
+    // ---------- BOOK GRID + TABS ----------
+    const GROUPS = ["All", "Elementary", "Junior High", "Senior High"];
+    function showBooks(g) {
+      $("tabs").innerHTML = GROUPS.map(t => `<button data-g="${t}" class="px-4 py-2 rounded-full border transition ${t === g ? "bg-denBlue text-white border-denBlue" : "bg-white text-gray-600 border-gray-200 hover:border-denBlue"}">${t}</button>`).join("");
+      const list = BOOKS.filter(b => g === "All" || b.grp === g);
+      $("book-grid").innerHTML = list.map((b, i) => `
+        <div class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition p-3 flex flex-col">
+          <span class="text-[10px] font-bold ${b.c} text-white px-2 py-0.5 rounded self-start mb-2">${b.lvl}</span>
+          <div class="overflow-hidden rounded-lg aspect-[3/4] bg-gray-100"><img src="${b.img}" alt="${b.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" /></div>
+          <h3 class="font-serif font-bold text-sm text-gray-900 mt-3 line-clamp-1">${b.title}</h3>
+          <div class="flex items-center justify-between mt-2">
+            <span class="font-bold text-denGreen">₱${b.price}</span>
+            <button data-i="${BOOKS.indexOf(b)}" class="order bg-denBlue hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition">Order</button>
+          </div>
+        </div>`).join("");
+    }
+    $("tabs").onclick = (e) => { if (e.target.dataset.g) showBooks(e.target.dataset.g); };
+    $("book-grid").onclick = (e) => { const b = e.target.closest(".order"); if (b) openOrder(+b.dataset.i); };
+    document.querySelectorAll(".cta").forEach(a => a.addEventListener("click", () => showBooks(a.dataset.tab)));
+    showBooks("All");
+
+    // ---------- ORDER MODAL ----------
+    const STORE_KEY = "den_orders";   // binabasa rin ito ng dashboard.html
+    const ORDER_API = "";             // kapag may backend na: ilagay dito ang URL (POST JSON)
+    let cart = {};
+    let sig = "", lastOrder = null;
+    const DISCOUNT_MIN_QTY = 100, DISCOUNT_RATE = 0.20;  // 100 pataas = 20% off
+    function calcTotals() {
+      const e = Object.entries(cart);
+      const qty = e.reduce((t, [, q]) => t + q, 0), sub = e.reduce((t, [i, q]) => t + BOOKS[i].price * q, 0);
+      const disc = qty >= DISCOUNT_MIN_QTY ? sub * DISCOUNT_RATE : 0;
+      return { qty, sub, disc, total: sub - disc };
+    }
+    const peso = (n) => "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    function renderOrder() {
+      $("order-list").innerHTML = BOOKS.map((b, i) => {
+        const q = cart[i] || 0;
+        return `<div data-row="${i}" class="flex items-center gap-3 p-2 rounded-xl border ${q ? "border-denBlue bg-blue-50" : "border-gray-100"}">
+          <img src="${b.img}" alt="" class="w-10 h-14 object-cover rounded bg-gray-100" />
+          <div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate">${b.title}</p><p class="text-xs text-gray-500">${b.lvl} · ${peso(b.price)}</p></div>
+          <div class="flex items-center gap-2">
+            <button type="button" data-dec="${i}" class="w-7 h-7 rounded-full border border-gray-300 hover:bg-gray-100" aria-label="Less">−</button>
+            <input type="number" inputmode="numeric" min="0" max="999" value="${q}" data-qty="${i}" aria-label="Quantity" class="w-16 h-7 text-center text-sm font-bold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-denBlue" />
+            <button type="button" data-inc="${i}" class="w-7 h-7 rounded-full border border-gray-300 hover:bg-gray-100" aria-label="More">+</button>
+          </div></div>`;
+      }).join("");
+      updateOrderTotals();
+    }
+    function updateOrderTotals() {
+      const t = calcTotals();
+      $("order-total").textContent = peso(t.total);
+      $("order-note").textContent = t.disc ? "20% bulk discount applied: -" + peso(t.disc)
+        : t.qty ? "Add " + (DISCOUNT_MIN_QTY - t.qty) + " more book(s) for 20% off" : "Order 100+ books and get 20% off";
+      $("order-submit").disabled = t.qty === 0;
+    }
+    function openOrder(idx) {
+      cart = idx != null ? { [idx]: 1 } : {};
+      $("order-form").reset();
+      sig = ""; $("o-sig-prev").classList.add("hidden");
+      $("order-form").classList.remove("hidden"); $("order-done").classList.add("hidden");
+      renderOrder();
+      $("order-modal").classList.remove("hidden"); $("order-modal").classList.add("flex");
+      document.body.style.overflow = "hidden";
+      if (idx != null) document.querySelector(`[data-row="${idx}"]`)?.scrollIntoView({ block: "center" });
+    }
+    function closeOrder() {
+      $("order-modal").classList.add("hidden"); $("order-modal").classList.remove("flex");
+      document.body.style.overflow = "";
+    }
+    document.querySelectorAll("[data-open-order]").forEach(btn => btn.onclick = () => openOrder());
+    $("order-close").onclick = $("order-backdrop").onclick = $("order-done-close").onclick = closeOrder;
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeOrder(); });
+    $("order-list").onclick = (e) => {
+      const inc = e.target.closest("[data-inc]"), dec = e.target.closest("[data-dec]");
+      const i = inc ? inc.dataset.inc : dec ? dec.dataset.dec : null;
+      if (i === null) return;
+      cart[i] = Math.max(0, Math.min(999, (cart[i] || 0) + (inc ? 1 : -1)));
+      if (!cart[i]) delete cart[i];
+      renderOrder();
+    };
+    $("order-list").addEventListener("input", (e) => {
+      const inp = e.target.closest("[data-qty]"); if (!inp) return;
+      const q = Math.max(0, Math.min(999, parseInt(inp.value, 10) || 0));
+      if (q) cart[inp.dataset.qty] = q; else delete cart[inp.dataset.qty];
+      const row = inp.closest("[data-row]");
+      row.classList.toggle("border-denBlue", q > 0); row.classList.toggle("bg-blue-50", q > 0); row.classList.toggle("border-gray-100", !q);
+      updateOrderTotals();
+    });
+    $("order-list").addEventListener("change", renderOrder); // ayusin ang laman kapag tapos nang mag-type
+    $("order-pdf-btn").onclick = () => lastOrder && downloadOrderPdf(lastOrder).catch(() => alert("Could not create the PDF. Please check your internet connection."));
+    function readSig(file) {
+      return new Promise((res, rej) => {
+        if (!file || !file.type.startsWith("image/")) return rej(new Error("Please upload an image (PNG or JPG)."));
+        const fr = new FileReader();
+        fr.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const sc = Math.min(1, 600 / img.width, 240 / img.height), c = document.createElement("canvas");
+            c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+            const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height);
+            res(c.toDataURL("image/jpeg", 0.85));
+          };
+          img.onerror = () => rej(new Error("Could not read that image.")); img.src = fr.result;
+        };
+        fr.onerror = rej; fr.readAsDataURL(file);
+      });
+    }
+    $("o-sig").addEventListener("change", async (e) => {
+      try { sig = await readSig(e.target.files[0]); $("o-sig-prev").src = sig; $("o-sig-prev").classList.remove("hidden"); }
+      catch (err) { sig = ""; e.target.value = ""; $("o-sig-prev").classList.add("hidden"); alert(err.message); }
+    });
+    $("order-form").onsubmit = async (e) => {
+      e.preventDefault();
+      const items = Object.entries(cart).map(([i, q]) => ({ title: BOOKS[i].title, level: BOOKS[i].lvl, price: BOOKS[i].price, qty: q }));
+      if (!items.length) return;
+      if (!sig) { alert("Please upload your e-signature before placing the order."); return; }
+      const now = new Date();
+      const order = {
+        id: "ORD-" + now.toISOString().slice(0, 10).replace(/-/g, "") + "-" + Math.floor(1000 + Math.random() * 9000),
+        customer: $("o-name").value.trim(), address: $("o-address").value.trim(), tin: $("o-tin").value.trim(),
+        contactPerson: $("o-person").value.trim(), contactNumber: $("o-phone").value.trim(), email: $("o-email").value.trim(),
+        accountingName: $("o-acc-name").value.trim(), accountingNumber: $("o-acc-phone").value.trim(), accountingEmail: $("o-acc-email").value.trim(),
+        items, signature: sig, subtotal: calcTotals().sub, discount: calcTotals().disc, total: calcTotals().total,
+        date: now.toISOString(), status: "Pending", read: false
+      };
+      try { // lokal na pag-save: nababasa ng dashboard.html (parehong browser/site)
+        const all = JSON.parse(localStorage.getItem(STORE_KEY) || "[]");
+        all.unshift(order); localStorage.setItem(STORE_KEY, JSON.stringify(all));
+      } catch (err) { console.error(err); }
+      if (ORDER_API) { try { await fetch(ORDER_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(order) }); } catch (err) { console.error(err); } }
+      $("order-done-msg").textContent = "Order " + order.id + " · " + peso(order.total) + ". Natanggap na ng aming team ang iyong order. Dina-download na ang PDF copy ng iyong order form.";
+      $("order-form").classList.add("hidden"); $("order-done").classList.remove("hidden");
+      lastOrder = order; downloadOrderPdf(order).catch(console.error); // awtomatikong PDF copy
+    };
+
+    // ---------- VERSE ROTATOR ----------
+    let v = 0, vt;
+    $("verse-dots").innerHTML = VERSES.map((_, i) => `<button data-v="${i}" class="vd w-2 h-2 rounded-full bg-white/30" aria-label="Verse ${i + 1}"></button>`).join("");
+    function showVerse(n) {
+      v = n; const box = $("verse-box"); box.style.opacity = 0;
+      setTimeout(() => {
+        $("verse-text").textContent = "“" + VERSES[v][0] + "”";
+        $("verse-ref").textContent = "— " + VERSES[v][1];
+        document.querySelectorAll(".vd").forEach((d, i) => d.classList.toggle("bg-denLime", i === v));
+        box.style.opacity = 1;
+      }, 350);
+    }
+    $("verse-dots").onclick = (e) => { if (e.target.dataset.v) { showVerse(+e.target.dataset.v); startVerse(); } };
+    const startVerse = () => { clearInterval(vt); vt = setInterval(() => showVerse((v + 1) % VERSES.length), 7000); };
+    showVerse(0); startVerse();
+
+    // ---------- MISC ----------
+    $("menu-btn").onclick = () => $("mobile-nav").classList.toggle("hidden");
+    $("mobile-nav").onclick = () => $("mobile-nav").classList.add("hidden");
+    window.addEventListener("scroll", () => $("header").classList.toggle("shadow-md", scrollY > 8), { passive: true });
+    const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .12 });
+    document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+
+    // Shareable order link: .../index.html#order  -> kusang bumubukas ang order form
+    const openFromHash = () => { if (location.hash === "#order") openOrder(); };
+    window.addEventListener("hashchange", openFromHash);
+    openFromHash();
+  </script>
+</body>
+</html>

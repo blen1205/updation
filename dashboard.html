@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Delivery Dashboard - Digital Evangelization Network</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+
+  <!-- Reusable classes (para mas maikli ang HTML) -->
+  <style type="text/tailwindcss">
+    @layer components {
+      .panel   { @apply bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm; }
+      .mcard   { @apply panel p-4 relative mt-3; }
+      .micon   { @apply absolute -top-4 left-4 w-9 h-9 rounded-xl text-white flex items-center justify-center shadow-md text-sm font-bold; }
+      .mlabel  { @apply text-[11px] text-gray-400 font-medium; }
+      .mvalue  { @apply text-lg font-bold text-slate-800 dark:text-white mt-0.5; }
+      .vtitle  { @apply text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight; }
+      .vsub    { @apply text-xs text-gray-400 mt-1; }
+      .vbadge  { @apply text-xs px-3 py-1.5 rounded-lg font-semibold; }
+      .lbl     { @apply block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1; }
+      .inp     { @apply w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg text-xs px-3 py-2.5 dark:text-white; }
+      .btn-ok  { @apply bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-lg shadow transition flex items-center; }
+      .pending { @apply px-2.5 py-1 bg-amber-100 text-amber-700 dark:text-amber-300 text-[11px] font-bold rounded-lg; }
+      .navlink { @apply flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-blue-800/50 transition text-slate-100 font-medium; }
+      .navlink.active { @apply bg-blue-600 text-white shadow-md; }
+    }
+  </style>
+
+  <style>
+    /* Sidebar: laging nakikita ang logo, pwedeng i-drag ang lapad */
+    #sidebar { width: 76px; min-width: 76px; max-width: 420px; transition: width .3s ease; }
+    #sidebar.dragging { transition: none; }
+    body.resizing { cursor: col-resize; user-select: none; }
+    .nav-text, .nav-section-title { white-space: nowrap; }
+    /* Collapsed: simbolo lang ng logo ang makikita; lumalapad kapag lumaki ang sidebar */
+    #logo-wrap { width: 40px; height: 40px; overflow: hidden; flex-shrink: 0; }
+    #sidebar-logo { height: 40px; width: auto; max-width: none; display: block; }
+    #resizer { touch-action: none; }
+    /* Logo <-> toggle icon swap */
+    #logo-header { position: relative; padding-left: 18px; }
+    #logo-wrap { transition: opacity .15s ease, width .3s ease; }
+    #sidebar.dragging #logo-wrap { transition: opacity .15s ease; }
+    #btn-toggle-collapse {
+      position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .15s ease, background-color .15s ease;
+    }
+    /* Naka-close: tapat/hover = logo nawawala, toggle icon lumalabas */
+    #logo-header:hover #logo-wrap, #logo-header:has(#btn-toggle-collapse:focus-visible) #logo-wrap { opacity: 0; }
+    #logo-header:hover #btn-toggle-collapse, #logo-header:has(#btn-toggle-collapse:focus-visible) #btn-toggle-collapse { opacity: 1; pointer-events: auto; }
+    /* Naka-open: buong logo sa kaliwa, toggle icon laging nasa kanan */
+    #sidebar.is-open #logo-header:hover #logo-wrap, #sidebar.is-open #logo-header:has(#btn-toggle-collapse:focus-visible) #logo-wrap { opacity: 1; }
+    #sidebar.is-open #btn-toggle-collapse { left: auto; right: 12px; opacity: 1; pointer-events: auto; }
+  </style>
+</head>
+
+<body class="bg-[#f4f7fe] dark:bg-slate-900 font-sans text-gray-800 dark:text-slate-100 antialiased flex h-screen w-screen overflow-hidden transition-colors duration-300">
+
+  <!-- LEFT SIDEBAR (naka-close by default) -->
+  <aside id="sidebar" class="relative bg-[#0d1b3e] dark:bg-slate-950 text-white flex flex-col justify-between flex-shrink-0 h-full shadow-xl z-30 border-r border-transparent dark:border-slate-800">
+    <div class="overflow-y-auto overflow-x-hidden flex-1 flex flex-col">
+
+      <!-- Logo header (TikTok style): logo ang kita; kapag tinapat ang mouse, nagiging toggle icon -->
+      <div id="logo-header" class="h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex items-center flex-shrink-0 overflow-hidden">
+        <div id="logo-wrap">
+          <img id="sidebar-logo" src="logo2.png" alt="Digital Evangelization Network" />
+        </div>
+        <button id="btn-toggle-collapse" title="Toggle sidebar" aria-label="Toggle sidebar"
+          class="text-slate-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+            <path d="M9 4v16"></path>
+            <path d="M5.5 4h3.5v16H5.5a2.5 2.5 0 0 1-2.5-2.5v-11A2.5 2.5 0 0 1 5.5 4z" fill="currentColor" stroke="none"></path>
+          </svg>
+        </button>
+      </div>
+
+      <nav id="dynamic-nav" class="px-2 pt-4 pb-2 space-y-1 text-xs flex-1"></nav>
+    </div>
+
+    <div class="p-3 border-t border-blue-900/50 dark:border-slate-800 flex justify-around items-center bg-[#070f24] dark:bg-slate-950">
+      <button id="btn-settings" class="p-2 text-blue-300 dark:text-slate-400 hover:text-white transition" title="Settings"><i class="fa-solid fa-gear"></i></button>
+      <button id="btn-logout" class="p-2 text-blue-300 dark:text-slate-400 hover:text-red-400 transition" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </aside>
+
+  <!-- RESIZER HANDLE: i-drag pakaliwa/pakanan para lumiit/lumaki ang sidebar -->
+  <div id="resizer" class="w-1.5 hover:w-2 bg-transparent hover:bg-blue-500/50 active:bg-blue-500/70 cursor-col-resize transition-all duration-150 h-full z-20 flex-shrink-0" title="Drag to resize"></div>
+
+  <!-- RIGHT MAIN CONTENT -->
+  <div class="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
+
+    <!-- TOP HEADER -->
+    <header class="bg-white dark:bg-slate-950 text-gray-800 dark:text-white h-16 px-6 flex items-center justify-between shadow-sm sticky top-0 z-10 flex-shrink-0 transition-colors duration-300 border-b border-gray-200 dark:border-slate-800">
+      <span class="font-bold text-base text-slate-800 dark:text-white">Online Inventory Delivery Management System</span>
+
+      <div class="flex items-center space-x-3">
+        <div class="relative">
+          <button id="btn-messages" class="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition focus:outline-none" title="Messages"><i class="fa-solid fa-envelope text-sm"></i></button>
+          <div id="messages-dropdown" class="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-100 dark:border-slate-700 p-3 hidden z-50">
+            <div class="text-xs font-bold text-slate-800 dark:text-white pb-2 border-b border-gray-100 dark:border-slate-700">Messages</div>
+            <div class="py-6 text-center text-gray-400 text-xs italic">No messages yet (Backend pending)</div>
+          </div>
+        </div>
+
+        <div class="relative">
+          <button id="btn-notifications" class="relative p-2 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition focus:outline-none" title="Notifications"><i class="fa-solid fa-bell text-sm"></i><span id="notif-badge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold text-center leading-4">0</span></button>
+          <div id="notifications-dropdown" class="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-100 dark:border-slate-700 p-3 hidden z-50">
+            <div class="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-slate-700">
+              <span class="text-xs font-bold text-slate-800 dark:text-white">Notifications</span>
+              <button id="notif-readall" class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline">Mark all as read</button>
+            </div>
+            <div id="notif-list" class="max-h-72 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 text-amber-500 hover:bg-gray-200 dark:hover:bg-slate-700 transition focus:outline-none" title="Toggle Theme">
+          <i id="theme-toggle-dark-icon" class="fa-solid fa-moon text-sm hidden"></i>
+          <i id="theme-toggle-light-icon" class="fa-solid fa-sun text-sm hidden"></i>
+        </button>
+
+        <div class="flex items-center space-x-2 border-l pl-3 border-gray-200 dark:border-slate-800">
+          <div id="user-avatar" class="w-8 h-8 bg-blue-600 text-white font-bold text-xs rounded-full flex items-center justify-center shadow-md">--</div>
+          <div class="text-xs font-semibold">
+            <span>Hi, </span>
+            <span id="header-user-name" class="font-extrabold uppercase tracking-wide text-blue-600 dark:text-blue-400">--</span>
+            <span id="header-user-role" class="text-gray-400 text-[10px] block font-normal">(--)</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="p-6 space-y-6 flex-1">
+
+      <!-- DASHBOARD VIEW -->
+      <div id="view-dashboard" class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h1 class="vtitle">Dashboard Overview & System Monitoring</h1>
+          <div class="flex items-center space-x-2">
+            <select id="year-filter" class="bg-white dark:bg-slate-800 dark:text-white border border-gray-300 dark:border-slate-700 rounded-lg text-xs px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+              <option value="2026-2027">2026-2027</option>
+              <option value="2025-2026">2025-2026</option>
+            </select>
+            <button id="btn-apply-filter" class="bg-[#2563eb] hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition">Go!</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+          <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="mcard"><div class="micon bg-indigo-700">₱</div><div class="pt-2 pl-1"><div class="mlabel">Business Value</div><div id="val-business" class="mvalue">₱ 0.00</div></div></div>
+            <div class="mcard flex items-center justify-between">
+              <div class="micon bg-amber-500"><i class="fa-solid fa-truck"></i></div>
+              <div class="pt-2 pl-1">
+                <div class="mlabel">Delivery Percentage</div>
+                <div class="text-[10px] text-gray-400 mt-1">Target: 100%</div>
+              </div>
+              <div class="relative w-24 h-24 flex-shrink-0">
+                <canvas id="gauge-delivery"></canvas>
+                <div id="val-delivery" class="absolute inset-0 flex items-center justify-center text-sm font-bold text-slate-800 dark:text-white">0 %</div>
+              </div>
+            </div>
+            <div class="mcard flex items-center justify-between">
+              <div class="micon bg-purple-600"><i class="fa-solid fa-rotate-left"></i></div>
+              <div class="pt-2 pl-1">
+                <div class="mlabel">Pullout Percentage</div>
+                <div class="text-[10px] text-gray-400 mt-1">Target: 100%</div>
+              </div>
+              <div class="relative w-24 h-24 flex-shrink-0">
+                <canvas id="gauge-pullout"></canvas>
+                <div id="val-pullout" class="absolute inset-0 flex items-center justify-center text-sm font-bold text-slate-800 dark:text-white">0 %</div>
+              </div>
+            </div>
+            <div class="mcard flex items-center justify-between">
+              <div class="micon bg-emerald-500"><i class="fa-solid fa-wallet"></i></div>
+              <div class="pt-2 pl-1">
+                <div class="mlabel">Collection Percentage</div>
+                <div class="text-[10px] text-gray-400 mt-1">Target: 100%</div>
+              </div>
+              <div class="relative w-24 h-24 flex-shrink-0">
+                <canvas id="gauge-collection"></canvas>
+                <div id="val-collection" class="absolute inset-0 flex items-center justify-center text-sm font-bold text-slate-800 dark:text-white">0 %</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Orders donut -->
+          <div class="flex">
+            <div class="mcard w-full flex flex-col">
+              <div class="micon bg-blue-600"><i class="fa-solid fa-cart-shopping"></i></div>
+              <div class="pt-2 pl-1 mlabel">Orders Overview</div>
+              <div class="flex-1 flex items-center justify-center py-3">
+                <div class="relative w-40 h-40">
+                  <canvas id="orders-donut"></canvas>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span id="val-total" class="text-2xl font-extrabold text-slate-800 dark:text-white">0</span>
+                    <span class="text-[10px] text-gray-400">Total Orders</span>
+                  </div>
+                </div>
+              </div>
+              <div class="space-y-1.5 text-xs">
+                <div class="flex items-center justify-between"><span class="flex items-center text-gray-500 dark:text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-amber-600 mr-2"></span>Pending Orders</span><span id="val-pending" class="font-bold text-slate-800 dark:text-white">0</span></div>
+                <div class="flex items-center justify-between"><span class="flex items-center text-gray-500 dark:text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-emerald-600 mr-2"></span>Delivered Orders</span><span id="val-delivered" class="font-bold text-slate-800 dark:text-white">0</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Overview -->
+        <div class="panel p-6 relative">
+          <div class="mb-4">
+            <button id="chart-toggle-btn" class="text-gray-500 hover:text-gray-800 dark:text-slate-400 dark:hover:text-white focus:outline-none p-1.5 rounded-lg bg-gray-50 dark:bg-slate-700/50 transition border border-gray-100 dark:border-slate-700 shadow-sm flex items-center justify-center" title="Minimize / Expand Chart">
+              <i id="chart-toggle-icon" class="fa-solid fa-chevron-down text-xs transition-transform duration-300"></i>
+            </button>
+          </div>
+          <h2 class="text-sm font-bold text-slate-800 dark:text-white mb-4">Monthly Overview</h2>
+          <div id="chart-container">
+            <div class="relative h-64 sm:h-72 w-full"><canvas id="overviewChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Sales Orders Tracking -->
+        <div class="panel p-6 overflow-hidden">
+          <h2 class="text-sm font-bold text-slate-800 dark:text-white mb-4">System-Wide Live Sales Orders Tracking</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="text-gray-400 border-b border-gray-100 dark:border-slate-700">
+                  <th class="pb-3 font-semibold">Order ID</th><th class="pb-3 font-semibold">Customer</th><th class="pb-3 font-semibold">Date</th>
+                  <th class="pb-3 font-semibold">Tracking</th><th class="pb-3 font-semibold">Status</th><th class="pb-3 font-semibold text-right">Order Total</th>
+                </tr>
+              </thead>
+              <tbody id="sales-orders-tbody" class="divide-y divide-gray-100 dark:divide-slate-700">
+                <tr><td colspan="6" class="py-6 text-center text-gray-400 italic">No active orders found in the system monitor.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- APPROVAL -->
+      <div id="view-approval" class="space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="vtitle">Order Approval Module</h1>
+            <p class="vsub">Suriin ang order form na may pirma at bilang ng order kung tama, pagkatapos ay i-click ang Done to Complete.</p>
+          </div>
+          <span class="vbadge bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Ellaine's Approval</span>
+        </div>
+        <div class="panel p-6 space-y-4">
+          <div class="flex items-center justify-between border-b pb-3 border-gray-100 dark:border-slate-700">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 dark:text-white">School: St. Jude Academy</h3>
+              <p class="text-xs text-gray-400">Signed Form Attached | Ready for review</p>
+            </div>
+            <span class="pending">Pending Approval</span>
+          </div>
+          <div class="flex justify-end pt-2">
+            <button onclick="alert('Order Approved and marked as Complete (Green)!')" class="btn-ok"><i class="fa-solid fa-check mr-2"></i> Done to Complete (Green)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PICKLIST -->
+      <div id="view-picklist" class="space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="vtitle">Picklist (Warehouse Preparation)</h1>
+            <p class="vsub">Hanapin ang mga kinakailangang libro, i-report kay Arvin kapag kumpleto na, at i-click ang Done to Complete.</p>
+          </div>
+          <span class="vbadge bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">Warehouse / Jacob</span>
+        </div>
+        <div class="panel p-6 space-y-4">
+          <div class="flex items-center justify-between border-b pb-3 border-gray-100 dark:border-slate-700">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 dark:text-white">Picklist #PL-2026-001</h3>
+              <p class="text-xs text-gray-400">Items: GMRC Complete Sets (50 copies)</p>
+            </div>
+            <span class="pending">Pending Picking</span>
+          </div>
+          <div class="flex justify-end pt-2">
+            <button onclick="alert('Picklist completed and reported (Green)!')" class="btn-ok"><i class="fa-solid fa-check mr-2"></i> Done to Complete (Green)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PACKING -->
+      <div id="view-packing" class="space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="vtitle">Packing List Management</h1>
+            <p class="vsub">Pagkatapos ma-pack ni Jacob ang mga orders, i-click ang Done to Complete.</p>
+          </div>
+          <span class="vbadge bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">Packing Module</span>
+        </div>
+        <div class="panel p-6 space-y-4">
+          <div class="flex items-center justify-between border-b pb-3 border-gray-100 dark:border-slate-700">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 dark:text-white">Packing Status: St. Jude Academy</h3>
+              <p class="text-xs text-gray-400">Packed and verified</p>
+            </div>
+            <span class="pending">Pending Verification</span>
+          </div>
+          <div class="flex justify-end pt-2">
+            <button onclick="alert('Packing verified and completed (Green)!')" class="btn-ok"><i class="fa-solid fa-check mr-2"></i> Done to Complete (Green)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DR & LABEL -->
+      <div id="view-packing-list-maker" class="space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="vtitle">DR & Label Generation</h1>
+            <p class="vsub">Gumawa ng DR at label, pagkatapos ay i-click ang Done to Complete.</p>
+          </div>
+          <span class="vbadge bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">DR Module</span>
+        </div>
+        <div class="panel p-6">
+          <form class="space-y-4">
+            <div>
+              <label class="lbl">Delivery Receipt (DR) & Label Details</label>
+              <textarea rows="3" class="inp" placeholder="Enter DR numbers..."></textarea>
+            </div>
+            <div class="flex justify-end">
+              <button type="button" onclick="alert('DR and Label created and completed (Green)!')" class="btn-ok"><i class="fa-solid fa-check mr-2"></i> Done to Complete (Green)</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- DELIVERY -->
+      <div id="view-delivery" class="space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="vtitle">Delivery Tracking & Couriers</h1>
+            <p class="vsub">Subaybayan ang mga padala. Status: Orange (Pending), Green (Complete), Red (Failed).</p>
+          </div>
+          <span class="vbadge bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">Logistics Delivery</span>
+        </div>
+        <div class="panel p-6 overflow-hidden">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="text-gray-400 border-b border-gray-100 dark:border-slate-700">
+                <th class="pb-3 font-semibold">Tracking / Ref ID</th><th class="pb-3 font-semibold">Courier / Driver</th>
+                <th class="pb-3 font-semibold">Contact / Link</th><th class="pb-3 font-semibold">Status</th><th class="pb-3 font-semibold text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
+              <tr>
+                <td class="py-3 font-bold">TRK-98421</td>
+                <td>J&T Express</td>
+                <td><a href="#" class="text-blue-600 underline">Track Link</a></td>
+                <td><span class="px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 font-bold rounded text-[10px]">Pending (Orange)</span></td>
+                <td class="text-right"><button onclick="alert('Marked as Complete with Signed DR (Green)!')" class="px-3 py-1 bg-emerald-600 text-white rounded font-bold text-[10px]">Done to Complete</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- COURIER -->
+      <div id="view-courier" class="space-y-6 hidden">
+        <h1 class="vtitle">Courier Partners</h1>
+        <div class="panel p-6"><p class="text-xs text-gray-500 dark:text-slate-400">Listahan ng mga accredited couriers (Lalamove, J&T, LBC, Mike, Apv).</p></div>
+      </div>
+
+      <!-- ORDER FORM (merged: Order Form + Order / Sales) -->
+      <div id="view-order-form" class="space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="vtitle">Order Form</h1>
+            <p class="vsub">Ilagay ang detalye ng school at ang quantity ng mga libro. Awtomatikong may 20% discount kapag 100 pataas ang kabuuang libro.</p>
+          </div>
+          <span class="vbadge bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">New Order</span>
+        </div>
+        <div class="panel p-5 flex flex-col md:flex-row md:items-end gap-3">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-slate-800 dark:text-white">Customer Order Link</p>
+            <p class="vsub">Ibigay ang link na ito sa school. Sila mismo ang magpupuno ng form at mag-a-upload ng e-signature, at mapupunta ang order dito sa system na may notification.</p>
+            <input id="of-link" readonly class="inp mt-2" />
+          </div>
+          <div class="flex gap-2">
+            <button type="button" id="of-copy" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-lg shadow transition"><i class="fa-solid fa-copy mr-1.5"></i> Copy Link</button>
+            <a id="of-open" target="_blank" rel="noopener" class="bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 font-bold text-xs px-4 py-2.5 rounded-lg transition"><i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> Open Form</a>
+          </div>
+        </div>
+        <form id="order-form" class="panel p-6 space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><label class="lbl">School Name</label><input id="of-school" required class="inp" placeholder="Enter school name..." /></div>
+            <div><label class="lbl">Order Date</label><input type="date" id="of-date" required class="inp" /></div>
+            <div><label class="lbl">Contact Person</label><input id="of-person" required class="inp" placeholder="Full name" /></div>
+            <div><label class="lbl">Contact Number</label><input id="of-phone" required class="inp" placeholder="09XXXXXXXXX" /></div>
+            <div><label class="lbl">Email</label><input type="email" id="of-email" required class="inp" placeholder="school@email.com" /></div>
+            <div><label class="lbl">TIN Number</label><input id="of-tin" required class="inp" placeholder="000-000-000-000" /></div>
+            <div class="sm:col-span-2"><label class="lbl">School Address</label><input id="of-address" required class="inp" placeholder="Street, Barangay, City / Province" /></div>
+            <div><label class="lbl">Accounting/Finance (Name)</label><input id="of-acc-name" required class="inp" placeholder="Full name" /></div>
+            <div><label class="lbl">Accounting/Finance (Number)</label><input id="of-acc-phone" required class="inp" placeholder="09XXXXXXXXX" /></div>
+            <div class="sm:col-span-2"><label class="lbl">Accounting/Finance (Email)</label><input type="email" id="of-acc-email" required class="inp" placeholder="finance@email.com" /></div>
+          </div>
+
+          <div>
+            <label class="lbl">Books (Kindergarten to Grade 12): ilagay ang quantity</label>
+            <div class="overflow-x-auto border border-gray-100 dark:border-slate-700 rounded-xl">
+              <table class="w-full text-left text-xs">
+                <thead><tr class="text-gray-400 border-b border-gray-100 dark:border-slate-700">
+                  <th class="p-3 font-semibold">Level</th><th class="p-3 font-semibold">Book</th><th class="p-3 font-semibold text-right">Price</th><th class="p-3 font-semibold text-center">Quantity</th><th class="p-3 font-semibold text-right">Amount</th>
+                </tr></thead>
+                <tbody id="of-books" class="divide-y divide-gray-100 dark:divide-slate-700"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div><label class="lbl">Items Ordered (auto)</label><textarea id="of-items" readonly rows="4" class="inp" placeholder="Walang napiling libro pa"></textarea></div>
+            <div class="bg-gray-50 dark:bg-slate-900 rounded-xl p-4 space-y-2 text-xs">
+              <div class="flex justify-between"><span class="text-gray-500">Total books</span><b id="of-qty">0</b></div>
+              <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><b id="of-sub">₱ 0.00</b></div>
+              <div id="of-disc-row" class="flex justify-between text-emerald-600 font-semibold hidden"><span>Bulk discount (20%)</span><b id="of-disc">- ₱ 0.00</b></div>
+              <div class="flex justify-between items-center border-t border-gray-200 dark:border-slate-700 pt-2"><span class="font-bold">Total Amount (PHP)</span><b id="of-total" class="text-lg text-blue-600 dark:text-blue-400">₱ 0.00</b></div>
+              <p id="of-note" class="text-[11px] text-gray-400"></p>
+            </div>
+          </div>
+
+          <div>
+            <label class="lbl">E-Signature (upload)</label>
+            <input type="file" id="of-sig" accept="image/*" class="w-full text-xs text-gray-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-slate-700 dark:file:text-slate-200 cursor-pointer" />
+            <img id="of-sig-prev" alt="Signature preview" class="hidden h-20 mt-2 border border-gray-200 dark:border-slate-700 rounded bg-white p-1" />
+          </div>
+          <div class="flex justify-end pt-4 border-t border-gray-100 dark:border-slate-700">
+            <button type="submit" class="btn-ok px-6"><i class="fa-solid fa-check mr-2"></i> Submit Order</button>
+          </div>
+        </form>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ORDER DETAILS MODAL -->
+  <div id="od-modal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
+    <div id="od-backdrop" class="absolute inset-0 bg-black/60"></div>
+    <div class="relative bg-white dark:bg-slate-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between"><h3 class="font-extrabold text-lg text-slate-800 dark:text-white">Order Details</h3><button id="od-close" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl" aria-label="Close">✕</button></div>
+      <div id="od-body" class="text-xs space-y-4"></div>
+    </div>
+  </div>
+
+  <script src="order-pdf.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const storedName = localStorage.getItem("admin_name") || "Ellaine";
+      const storedRole = localStorage.getItem("admin_role") || "Approver";
+      const storedInitials = localStorage.getItem("admin_initials") || "EL";
+
+      document.getElementById("header-user-name").textContent = storedName;
+      document.getElementById("header-user-role").textContent = `(${storedRole})`;
+      document.getElementById("user-avatar").textContent = storedInitials;
+
+      const isEllaine = (storedRole === "Approver" || storedName === "Ellaine");
+
+      // ---------- NAVIGATION ----------
+      const item = (id, icon, label, active) =>
+        `<a href="#" id="${id}" title="${label}" class="navlink${active ? " active" : ""}${active ? " mb-3" : ""}"><i class="fa-solid ${icon} w-5 text-center"></i><span class="nav-text hidden">${label}</span></a>`;
+      const title = (t) => `<div class="nav-section-title px-3 py-1 font-bold text-blue-300/60 uppercase tracking-wider text-[10px] mb-2 hidden">${t}</div>`;
+
+      document.getElementById("dynamic-nav").innerHTML = isEllaine
+        ? title("OVERVIEW") + item("nav-dashboard", "fa-chart-pie", "Dashboard Monitor", true)
+          + title("APPROVAL") + item("nav-approval", "fa-circle-check", "Approval")
+        : title("SYSTEM MONITORING") + item("nav-dashboard", "fa-chart-pie", "Dashboard (Live)", true)
+          + title("OPERATIONS")
+          + item("nav-order-form", "fa-file-lines", "Order Form")
+          + item("nav-picklist", "fa-list-check", "Picklist")
+          + item("nav-packing", "fa-box-archive", "Packing List")
+          + item("nav-packing-maker", "fa-file-invoice", "DR & Label Maker")
+          + item("nav-delivery", "fa-truck-fast", "Delivery")
+          + item("nav-courier", "fa-motorcycle", "Courier");
+
+      const views = {
+        "nav-dashboard": "view-dashboard", "nav-approval": "view-approval", "nav-picklist": "view-picklist",
+        "nav-packing": "view-packing", "nav-packing-maker": "view-packing-list-maker", "nav-delivery": "view-delivery",
+        "nav-courier": "view-courier", "nav-order-form": "view-order-form"
+      };
+
+      Object.entries(views).forEach(([navId, viewId]) => {
+        const navElem = document.getElementById(navId);
+        navElem?.addEventListener("click", (e) => {
+          e.preventDefault();
+          Object.values(views).forEach(v => document.getElementById(v)?.classList.add("hidden"));
+          document.getElementById(viewId)?.classList.remove("hidden");
+          document.querySelectorAll("#dynamic-nav a").forEach(a => a.classList.remove("active"));
+          navElem.classList.add("active");
+        });
+      });
+
+      // ---------- SIDEBAR: toggle + drag to resize (default: naka-close) ----------
+      const sidebar = document.getElementById("sidebar");
+      const logoWrap = document.getElementById("logo-wrap");
+      const resizer = document.getElementById("resizer");
+      const MIN_W = 76, MAX_W = 420, OPEN_W = 256, LABEL_AT = 150;
+      let width = MIN_W;
+      let lastOpenWidth = OPEN_W;
+
+      function setSidebarWidth(w) {
+        width = Math.max(MIN_W, Math.min(MAX_W, Math.round(w)));
+        const showLabels = width >= LABEL_AT;
+        sidebar.style.width = width + "px";
+        // Simbolo lang kapag maliit; lumalapad ang logo kasabay ng sidebar
+        sidebar.classList.toggle("is-open", showLabels);
+        logoWrap.style.width = (showLabels ? Math.max(40, Math.min(200, width - 80)) : 40) + "px";
+        document.querySelectorAll(".nav-section-title, .nav-text").forEach(el => el.classList.toggle("hidden", !showLabels));
+        if (width >= LABEL_AT) lastOpenWidth = width;
+      }
+      setSidebarWidth(MIN_W); // naka-close pagpasok sa website, kita pa rin ang logo
+
+      document.getElementById("btn-toggle-collapse")?.addEventListener("click", (e) => {
+        e.currentTarget.blur(); // para bumalik ang logo kapag inalis ang mouse
+        setSidebarWidth(width >= LABEL_AT ? MIN_W : lastOpenWidth);
+      });
+
+      // Drag (mouse, touch, pen)
+      resizer.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        resizer.setPointerCapture(e.pointerId);
+        sidebar.classList.add("dragging");
+        document.body.classList.add("resizing");
+        const startX = e.clientX, startW = width;
+
+        const onMove = (ev) => setSidebarWidth(startW + (ev.clientX - startX));
+        const onUp = () => {
+          sidebar.classList.remove("dragging");
+          document.body.classList.remove("resizing");
+          resizer.removeEventListener("pointermove", onMove);
+          resizer.removeEventListener("pointerup", onUp);
+          resizer.removeEventListener("pointercancel", onUp);
+        };
+        resizer.addEventListener("pointermove", onMove);
+        resizer.addEventListener("pointerup", onUp);
+        resizer.addEventListener("pointercancel", onUp);
+      });
+
+      // Double-click sa handle: balik sa naka-close / default na bukas
+      resizer.addEventListener("dblclick", () => setSidebarWidth(width > MIN_W ? MIN_W : OPEN_W));
+
+      // ---------- DROPDOWNS ----------
+      const msgDropdown = document.getElementById("messages-dropdown");
+      const notifDropdown = document.getElementById("notifications-dropdown");
+
+      document.getElementById("btn-messages")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        msgDropdown.classList.toggle("hidden");
+        notifDropdown.classList.add("hidden");
+      });
+      document.getElementById("btn-notifications")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        notifDropdown.classList.toggle("hidden");
+        msgDropdown.classList.add("hidden");
+      });
+      document.addEventListener("click", () => {
+        msgDropdown?.classList.add("hidden");
+        notifDropdown?.classList.add("hidden");
+      });
+
+      // ---------- ORDER FORM (Order Form + Order/Sales, pinagsama) ----------
+      const OF_BOOKS = [
+        ["Kinder", "Loving God & Others", 650], ["Grade 1", "Good Manners, Matters", 650], ["Grade 2", "Faithful Footsteps", 650],
+        ["Grade 3", "Leading with Integrity", 650], ["Grade 4", "Good with Compassion", 650], ["Grade 5", "Happy Manners", 650],
+        ["Grade 6", "Wisdom in Action", 650], ["Grade 7", "Walking in Faith", 650], ["Grade 8", "Courage & Conviction", 650],
+        ["Grade 9", "Servant Leadership", 650], ["Grade 10", "Global Christian Witness", 650],
+        ["Grade 11", "Purpose & Calling", 650], ["Grade 12", "Faithful Ambassadors", 650]
+      ];
+      const DISCOUNT_MIN_QTY = 100, DISCOUNT_RATE = 0.20;   // 100 pataas = 20% off
+      const ofPeso = (n) => "₱ " + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const ofBody = document.getElementById("of-books");
+      ofBody.innerHTML = OF_BOOKS.map(([lvl, title, price], i) => `
+        <tr><td class="p-3 font-semibold">${lvl}</td><td class="p-3">${title}</td><td class="p-3 text-right">${ofPeso(price)}</td>
+        <td class="p-3 text-center"><input type="number" min="0" max="9999" value="0" data-q="${i}" class="inp !w-20 text-center" /></td>
+        <td class="p-3 text-right font-semibold" id="of-line-${i}">${ofPeso(0)}</td></tr>`).join("");
+      document.getElementById("of-date").valueAsDate = new Date();
+
+      function ofCalc() {
+        let qty = 0, sub = 0; const lines = [];
+        ofBody.querySelectorAll("input[data-q]").forEach((inp) => {
+          const i = +inp.dataset.q, q = Math.max(0, Math.min(9999, parseInt(inp.value, 10) || 0)), amt = q * OF_BOOKS[i][2];
+          document.getElementById("of-line-" + i).textContent = ofPeso(amt);
+          qty += q; sub += amt;
+          if (q) lines.push({ level: OF_BOOKS[i][0], title: OF_BOOKS[i][1], price: OF_BOOKS[i][2], qty: q });
+        });
+        const disc = qty >= DISCOUNT_MIN_QTY ? sub * DISCOUNT_RATE : 0, total = sub - disc;
+        document.getElementById("of-qty").textContent = qty;
+        document.getElementById("of-sub").textContent = ofPeso(sub);
+        document.getElementById("of-disc").textContent = "- " + ofPeso(disc);
+        document.getElementById("of-disc-row").classList.toggle("hidden", !disc);
+        document.getElementById("of-total").textContent = ofPeso(total);
+        document.getElementById("of-items").value = lines.map(l => `${l.level} – ${l.title} × ${l.qty}`).join("\n");
+        document.getElementById("of-note").textContent = disc ? "20% bulk discount applied (100+ books)."
+          : qty ? `Dagdagan ng ${DISCOUNT_MIN_QTY - qty} pang libro para sa 20% discount.` : "Mag-order ng 100 pataas na libro para sa 20% discount.";
+        return { lines, qty, sub, disc, total };
+      }
+      ofBody.addEventListener("input", ofCalc);
+
+      document.getElementById("order-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const c = ofCalc();
+        if (!c.lines.length) { alert("Maglagay muna ng quantity sa kahit isang libro."); return; }
+        if (!ofSig) { alert("Mag-upload muna ng e-signature."); return; }
+        const dateStr = document.getElementById("of-date").value;
+        const order = {
+          id: "ORD-" + dateStr.replace(/-/g, "") + "-" + Math.floor(1000 + Math.random() * 9000),
+          customer: document.getElementById("of-school").value.trim(),
+          contactPerson: document.getElementById("of-person").value.trim(),
+          contactNumber: document.getElementById("of-phone").value.trim(),
+          email: document.getElementById("of-email").value.trim(),
+          tin: document.getElementById("of-tin").value.trim(),
+          address: document.getElementById("of-address").value.trim(),
+          accountingName: document.getElementById("of-acc-name").value.trim(),
+          accountingNumber: document.getElementById("of-acc-phone").value.trim(),
+          accountingEmail: document.getElementById("of-acc-email").value.trim(),
+          items: c.lines, signature: ofSig, subtotal: c.sub, discount: c.disc, total: c.total,
+          date: new Date(dateStr + "T00:00:00").toISOString(), status: "Pending", read: true
+        };
+        const all = loadOrders(); all.unshift(order); saveOrders(all); renderOrders();
+        downloadOrderPdf(order).catch(console.error);
+        toast("✅ Order " + order.id + " saved · " + ofPeso(order.total));
+        e.target.reset(); document.getElementById("of-date").valueAsDate = new Date(); ofCalc();
+        ofSig = ""; document.getElementById("of-sig-prev").classList.add("hidden");
+      });
+
+      // ---------- CHART TOGGLE ----------
+      const chartContainer = document.getElementById("chart-container");
+      const chartToggleIcon = document.getElementById("chart-toggle-icon");
+      document.getElementById("chart-toggle-btn")?.addEventListener("click", () => {
+        const hidden = chartContainer.classList.toggle("hidden");
+        chartToggleIcon.style.transform = hidden ? "rotate(-90deg)" : "rotate(0deg)";
+      });
+
+      // ---------- LOGOUT ----------
+      document.getElementById("btn-logout")?.addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "admin.html";
+      });
+
+      // ---------- THEME ----------
+      const darkIcon = document.getElementById("theme-toggle-dark-icon");
+      const lightIcon = document.getElementById("theme-toggle-light-icon");
+
+      function updateIcons() {
+        const isDark = document.documentElement.classList.contains("dark");
+        darkIcon.classList.toggle("hidden", isDark);   // moon: kita sa light mode
+        lightIcon.classList.toggle("hidden", !isDark); // sun: kita sa dark mode
+      }
+      if (localStorage.getItem("color-theme") === "dark") document.documentElement.classList.add("dark");
+      updateIcons();
+
+      document.getElementById("theme-toggle")?.addEventListener("click", () => {
+        document.documentElement.classList.toggle("dark");
+        localStorage.setItem("color-theme", document.documentElement.classList.contains("dark") ? "dark" : "light");
+        updateIcons();
+        refreshMetricCharts();
+      });
+
+      // ---------- METRIC CHARTS (gauges + orders donut) ----------
+      const isDarkMode = () => document.documentElement.classList.contains("dark");
+      const trackColor = () => (isDarkMode() ? "#334155" : "#e5e7eb");
+      const clampPct = (n) => Math.max(0, Math.min(100, Number(n) || 0));
+
+      const gaugeCfg = {
+        delivery:   { color: "#f59e0b" },
+        pullout:    { color: "#9333ea" },
+        collection: { color: "#10b981" }
+      };
+      const gaugeCharts = {};
+      Object.entries(gaugeCfg).forEach(([key, cfg]) => {
+        const el = document.getElementById("gauge-" + key);
+        if (!el) return;
+        gaugeCharts[key] = new Chart(el, {
+          type: "doughnut",
+          data: { datasets: [{ data: [0, 100], backgroundColor: [cfg.color, trackColor()], borderWidth: 0 }] },
+          options: {
+            cutout: "78%", responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            animation: { duration: 700 }
+          }
+        });
+      });
+
+      const ORDER_COLORS = ["#d97706", "#059669"];
+      let ordersChart = null;
+      const donutEl = document.getElementById("orders-donut");
+      if (donutEl) {
+        ordersChart = new Chart(donutEl, {
+          type: "doughnut",
+          data: { labels: ["Pending", "Delivered"], datasets: [{ data: [1], backgroundColor: [trackColor()], borderWidth: 0 }] },
+          options: {
+            cutout: "74%", responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            animation: { duration: 700 }
+          }
+        });
+      }
+
+      // Tawagin ito kapag dumating na ang data galing backend:
+      // updateDashboard({ businessValue: 125000, delivery: 80, pullout: 5, collection: 60, total: 40, pending: 10, delivered: 30 })
+      function updateDashboard(d = {}) {
+        const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+
+        set("val-business", "₱ " + Number(d.businessValue || 0).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+        Object.keys(gaugeCfg).forEach((key) => {
+          const v = clampPct(d[key]);
+          set("val-" + key, v + " %");
+          const ch = gaugeCharts[key];
+          if (ch) { ch.data.datasets[0].data = [v, 100 - v]; ch.update(); }
+        });
+
+        const pending = Number(d.pending) || 0, delivered = Number(d.delivered) || 0;
+        const total = Number(d.total) || (pending + delivered);
+        set("val-total", total);
+        set("val-pending", pending);
+        set("val-delivered", delivered);
+
+        if (ordersChart) {
+          const hasData = pending + delivered > 0;
+          ordersChart.data.datasets[0].data = hasData ? [pending, delivered] : [1];
+          ordersChart.data.datasets[0].backgroundColor = hasData ? ORDER_COLORS : [trackColor()];
+          ordersChart.options.plugins.tooltip.enabled = hasData;
+          ordersChart.update();
+        }
+      }
+      window.updateDashboard = updateDashboard;
+
+      // Para sumunod ang kulay ng "walang laman" na ring sa dark/light mode
+      function refreshMetricCharts() {
+        Object.values(gaugeCharts).forEach((ch) => { ch.data.datasets[0].backgroundColor[1] = trackColor(); ch.update("none"); });
+        if (ordersChart && ordersChart.data.datasets[0].data.length === 1) {
+          ordersChart.data.datasets[0].backgroundColor = [trackColor()];
+          ordersChart.update("none");
+        }
+      }
+
+      updateDashboard({}); // walang data pa: puro 0
+
+      // ---------- CHART ----------
+      const ctx = document.getElementById("overviewChart");
+      if (ctx) {
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+            datasets: [{
+              label: "Inventory Delivery Flow",
+              data: [0, 0, 0, 0, 0, 0],
+              borderColor: "#2563eb",
+              backgroundColor: "rgba(37, 99, 235, 0.05)",
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, suggestedMax: 10 } }
+          }
+        });
+      }
+
+      // ---------- INCOMING ORDERS (galing sa index.html) ----------
+      const ORDERS_KEY = "den_orders";
+      const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const pesoFmt = (n) => "₱ " + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const loadOrders = () => { try { return JSON.parse(localStorage.getItem(ORDERS_KEY) || "[]"); } catch { return []; } };
+      const saveOrders = (o) => { try { localStorage.setItem(ORDERS_KEY, JSON.stringify(o)); } catch {} };
+      const qtyOf = (o) => (o.items || []).reduce((t, x) => t + x.qty, 0);
+
+      function renderOrders() {
+        const orders = loadOrders();
+        const unread = orders.filter(o => !o.read).length;
+        const badge = document.getElementById("notif-badge");
+        badge.textContent = unread > 99 ? "99+" : unread;
+        badge.classList.toggle("hidden", unread === 0);
+
+        document.getElementById("notif-list").innerHTML = orders.length
+          ? orders.slice(0, 15).map(o => `
+              <div data-oid="${esc(o.id)}" class="cursor-pointer py-2.5 px-2 border-b border-gray-100 dark:border-slate-700 ${o.read ? "" : "bg-blue-50 dark:bg-slate-700/50"} rounded">
+                <p class="text-xs font-bold text-slate-800 dark:text-white">🛒 New order · ${esc(o.id)}</p>
+                <p class="text-[11px] text-gray-600 dark:text-slate-300">${esc(o.customer)} — ${qtyOf(o)} book(s) · ${pesoFmt(o.total)}</p>
+                <p class="text-[10px] text-gray-400">${new Date(o.date).toLocaleString("en-PH")}</p>
+              </div>`).join("")
+          : '<div class="py-6 text-center text-gray-400 text-xs italic">No notifications yet</div>';
+
+        document.getElementById("sales-orders-tbody").innerHTML = orders.length
+          ? orders.map(o => `
+              <tr data-oid="${esc(o.id)}" class="cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/40">
+                <td class="py-3 font-bold">${esc(o.id)}</td>
+                <td>${esc(o.customer)}</td>
+                <td>${new Date(o.date).toLocaleDateString("en-PH")}</td>
+                <td class="text-gray-400">—</td>
+                <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${o.status === "Delivered" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}">${esc(o.status)}</span></td>
+                <td class="text-right font-semibold">${pesoFmt(o.total)}</td>
+              </tr>`).join("")
+          : '<tr><td colspan="6" class="py-6 text-center text-gray-400 italic">No active orders found in the system monitor.</td></tr>';
+
+        const delivered = orders.filter(o => o.status === "Delivered").length;
+        const total = orders.length;
+        updateDashboard({
+          businessValue: orders.reduce((t, o) => t + (Number(o.total) || 0), 0),
+          delivery: total ? Math.round((delivered / total) * 100) : 0,
+          total, pending: total - delivered, delivered
+        });
+      }
+
+      function toast(msg) {
+        const t = document.createElement("div");
+        t.className = "fixed bottom-5 right-5 z-[70] bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl";
+        t.textContent = msg; document.body.appendChild(t);
+        setTimeout(() => t.remove(), 4500);
+      }
+
+      document.getElementById("notifications-dropdown").addEventListener("click", (e) => e.stopPropagation());
+      document.getElementById("notif-readall").addEventListener("click", () => {
+        const o = loadOrders(); o.forEach(x => x.read = true); saveOrders(o); renderOrders();
+      });
+      // Real-time: kapag may bagong order sa index.html (ibang tab, parehong browser)
+      window.addEventListener("storage", (e) => {
+        if (e.key !== ORDERS_KEY) return;
+        const before = (JSON.parse(e.oldValue || "[]")).length, after = loadOrders().length;
+        renderOrders();
+        if (after > before) toast("🛒 New order received!");
+      });
+      // ---------- CUSTOMER LINK + E-SIGNATURE + ORDER DETAILS ----------
+      let ofSig = "";
+      const linkInput = document.getElementById("of-link");
+      linkInput.value = new URL("index.html#order", location.href).href; // bubukas agad ang order form ng website
+      document.getElementById("of-open").href = linkInput.value;
+      document.getElementById("of-copy").addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(linkInput.value); }
+        catch { linkInput.select(); document.execCommand("copy"); }
+        toast("🔗 Link copied! Ipadala sa school.");
+      });
+
+      function readSig(file) {
+        return new Promise((res, rej) => {
+          if (!file || !file.type.startsWith("image/")) return rej(new Error("Image lang po (PNG/JPG)."));
+          const fr = new FileReader();
+          fr.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+              const sc = Math.min(1, 600 / img.width, 240 / img.height), c = document.createElement("canvas");
+              c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+              const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height);
+              res(c.toDataURL("image/jpeg", 0.85));
+            };
+            img.onerror = () => rej(new Error("Hindi mabasa ang larawan.")); img.src = fr.result;
+          };
+          fr.onerror = rej; fr.readAsDataURL(file);
+        });
+      }
+      document.getElementById("of-sig").addEventListener("change", async (e) => {
+        const prev = document.getElementById("of-sig-prev");
+        try { ofSig = await readSig(e.target.files[0]); prev.src = ofSig; prev.classList.remove("hidden"); }
+        catch (err) { ofSig = ""; e.target.value = ""; prev.classList.add("hidden"); alert(err.message); }
+      });
+
+      const odModal = document.getElementById("od-modal");
+      const closeDetails = () => { odModal.classList.add("hidden"); odModal.classList.remove("flex"); };
+      function openDetails(id) {
+        const all = loadOrders(), o = all.find(x => x.id === id);
+        if (!o) return;
+        if (!o.read) { o.read = true; saveOrders(all); renderOrders(); }
+        const row = (l, v) => `<div><p class="text-gray-400">${l}</p><p class="font-semibold text-slate-800 dark:text-white break-words">${esc(v || "—")}</p></div>`;
+        const sigOk = typeof o.signature === "string" && o.signature.startsWith("data:image/");
+        document.getElementById("od-body").innerHTML = `
+          <div class="grid grid-cols-2 gap-3">
+            ${row("Order ID", o.id)}${row("Date", new Date(o.date).toLocaleDateString("en-PH"))}
+            ${row("School", o.customer)}${row("TIN", o.tin)}${row("Address", o.address)}${row("Email", o.email)}
+            ${row("Contact Person", o.contactPerson)}${row("Contact Number", o.contactNumber)}
+            ${row("Accounting/Finance", o.accountingName)}${row("Accounting Number", o.accountingNumber)}${row("Accounting Email", o.accountingEmail)}
+          </div>
+          <div><p class="text-gray-400 mb-1">Items</p>
+            <table class="w-full"><tbody class="divide-y divide-gray-100 dark:divide-slate-700">
+              ${(o.items || []).map(x => `<tr><td class="py-1.5">${esc(x.level)} – ${esc(x.title)}</td><td class="text-right">${esc(x.qty)} × ${pesoFmt(x.price)}</td><td class="text-right font-semibold">${pesoFmt(x.qty * x.price)}</td></tr>`).join("")}
+            </tbody></table>
+            <div class="text-right mt-2 space-y-0.5">
+              ${o.discount ? `<p class="text-emerald-600">20% bulk discount: - ${pesoFmt(o.discount)}</p>` : ""}
+              <p class="text-base font-extrabold text-blue-600 dark:text-blue-400">Total: ${pesoFmt(o.total)}</p>
+            </div>
+          </div>
+          <div><p class="text-gray-400 mb-1">E-Signature</p>${sigOk ? `<img src="${o.signature}" alt="Signature" class="h-24 border border-gray-200 dark:border-slate-700 rounded bg-white p-1" />` : '<p class="italic text-gray-400">Walang signature</p>'}</div>
+          <div class="text-right"><button type="button" id="od-pdf" class="btn-ok ml-auto"><i class="fa-solid fa-file-pdf mr-2"></i> Download PDF</button></div>`;
+        document.getElementById("od-pdf").onclick = () => downloadOrderPdf(o).catch(() => alert("Hindi nagawa ang PDF. Tingnan ang internet connection."));
+        odModal.classList.remove("hidden"); odModal.classList.add("flex");
+      }
+      document.getElementById("sales-orders-tbody").addEventListener("click", (e) => { const r = e.target.closest("[data-oid]"); if (r) openDetails(r.dataset.oid); });
+      document.getElementById("notif-list").addEventListener("click", (e) => { const r = e.target.closest("[data-oid]"); if (r) openDetails(r.dataset.oid); });
+      document.getElementById("od-close").addEventListener("click", closeDetails);
+      document.getElementById("od-backdrop").addEventListener("click", closeDetails);
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDetails(); });
+
+      renderOrders();
+    });
+  </script>
+</body>
+</html>

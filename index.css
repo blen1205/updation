@@ -1,0 +1,29 @@
+/* Tailwind custom configuration script setup & custom classes */
+@layer utilities {
+  .bg-denBlue {
+    background-color: #1d61e7;
+  }
+  .text-denBlue {
+    color: #1d61e7;
+  }
+  .bg-denGreen {
+    background-color: #16a34a;
+  }
+  .text-denGreen {
+    color: #16a34a;
+  }
+  .border-denGreen {
+    border-color: #16a34a;
+  }
+  .bg-denDarkBlue {
+    background-color: #0b192c;
+  }
+  .bg-denCardBlue {
+    background-color: #172740;
+  }
+}
+
+/* Tailwind Custom Colors via JS Config Inject */
+script {
+  display: none;
+}
